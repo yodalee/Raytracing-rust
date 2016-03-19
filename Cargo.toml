@@ -7,3 +7,4 @@ authors = ["yodalee <lc85301@gmail.com>"]
 time = "0.1"
 bmp = "0.1.4"
 nalgebra = "0.5.1"
+palette = "0.2.1"
