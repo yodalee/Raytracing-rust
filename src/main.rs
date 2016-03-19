@@ -1,8 +1,12 @@
 extern crate time;
 extern crate bmp;
 
+mod ray;
+
 use time::precise_time_ns;
 use bmp::{Image, Pixel};
+
+use ray::{Ray};
 
 const WIDTH: u32 = 640;
 const HEIGHT: u32 = 480;
