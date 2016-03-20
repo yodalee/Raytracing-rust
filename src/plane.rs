@@ -35,7 +35,7 @@ impl Plane {
 
 impl Object for Plane {
     fn getNormalAt(&self, point: Vec3<f64>) -> Vec3<f64> { self.normal }
-    fn findIntersection(&self, ray: Ray) -> f64 {
+    fn findIntersection(&self, ray: &Ray) -> f64 {
         let ray_direction = ray.getRayDirection();
         let a: f64 = ray_direction.dot(&self.normal);
         // a == 0 then ray is parallel to the plane

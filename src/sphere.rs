@@ -1,8 +1,9 @@
 extern crate nalgebra as na;
 extern crate palette;
 
-use na::{Vec3};
+use na::{Vec3, Norm, Dot};
 use palette::{Rgb, Rgba};
+use std::num;
 
 use object::{Object};
 use ray::{Ray};
@@ -34,8 +35,28 @@ impl Sphere {
 }
 
 impl Object for Sphere {
-    fn getNormalAt(&self, point: Vec3<f64>) -> Vec3<f64> { Vec3::new(0.0, 0.0, 0.0) }
-    fn findIntersection(&self, ray: Ray) -> f64 {
-        -1.0
+    fn getNormalAt(&self, point: Vec3<f64>) -> Vec3<f64> {
+        // Normal point from center to point
+        (point - self.getSphereCenter()).normalize()
+    }
+
+    fn findIntersection(&self, ray: &Ray) -> f64 {
+        let b = 2.0*(ray.getRayOrigin() - self.getSphereCenter()).dot(&ray.getRayDirection());
+        let c = (ray.getRayOrigin() - self.getSphereCenter()).sqnorm() - self.getSphereRadius()*self.getSphereRadius();
+
+        let discriminant = b*b - 4.0 * c;
+        if discriminant > 0.0 {
+            // the ray intersect the sphere at two point
+            let root1 = ((-1.0*b - discriminant.sqrt())/2.0) - 0.001;
+            if root1 > 0.0 {
+                // the first root is the smallest positive root
+                root1
+            } else {
+                ((-1.0*b + discriminant.sqrt())/2.0)-0.001
+            }
+        } else {
+            // no intersect
+            -1.0
+        }
     }
 }
