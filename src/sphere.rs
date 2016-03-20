@@ -4,6 +4,9 @@ extern crate palette;
 use na::{Vec3};
 use palette::{Rgb, Rgba};
 
+use object::{Object};
+use ray::{Ray};
+
 pub struct Sphere {
     center: Vec3<f64>,
     radius: f64,
@@ -27,5 +30,12 @@ impl Sphere {
         Sphere::new(
             Vec3::new(0.0, 0.0, 0.0), 1.0, Rgba::new(0.5, 0.5, 0.5, 0.0)
         )
+    }
+}
+
+impl Object for Sphere {
+    fn getNormalAt(&self, point: Vec3<f64>) -> Vec3<f64> { Vec3::new(0.0, 0.0, 0.0) }
+    fn findIntersection(&self, ray: Ray) -> f64 {
+        -1.0
     }
 }
