@@ -16,7 +16,6 @@ pub struct Plane {
 impl Plane {
     pub fn getPlaneNormal(&self) -> Vec3<f64> { self.normal }
     pub fn getPlaneDistance(&self) -> f64 { self.distance }
-    pub fn getPlaneColor(&self) -> Rgba { self.color }
 
     pub fn new(norm: Vec3<f64>, d: f64, color: Rgba) -> Self {
         Plane {
@@ -34,6 +33,7 @@ impl Plane {
 }
 
 impl Object for Plane {
+    fn getColor(&self) -> Rgba { self.color }
     fn getNormalAt(&self, point: Vec3<f64>) -> Vec3<f64> { self.normal }
     fn findIntersection(&self, ray: &Ray) -> f64 {
         let ray_direction = ray.getRayDirection();

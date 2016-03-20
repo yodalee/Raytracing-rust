@@ -17,7 +17,6 @@ pub struct Sphere {
 impl Sphere {
     pub fn getSphereCenter(&self) -> Vec3<f64> { self.center }
     pub fn getSphereRadius(&self) -> f64 { self.radius }
-    pub fn getSphereColor(&self) -> Rgba { self.color }
 
     pub fn new(pos: Vec3<f64>, r: f64, color: Rgba) -> Self {
         Sphere {
@@ -35,6 +34,8 @@ impl Sphere {
 }
 
 impl Object for Sphere {
+    fn getColor(&self) -> Rgba { self.color }
+
     fn getNormalAt(&self, point: Vec3<f64>) -> Vec3<f64> {
         // Normal point from center to point
         (point - self.getSphereCenter()).normalize()
