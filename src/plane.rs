@@ -39,7 +39,7 @@ impl Object for Plane {
         let ray_direction = ray.getRayDirection();
         let a: f64 = ray_direction.dot(&self.normal);
         // a == 0 then ray is parallel to the plane
-        if a < 1e-6  {
+        if a.abs() < 1e-6  {
             -1.0
         } else {
             -1.0 * (self.normal.dot(&(ray.getRayOrigin() - (self.normal * self.distance)))) / a

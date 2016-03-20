@@ -109,10 +109,10 @@ fn main() {
     let O = Vec3::new(0.0, 0.0, 0.0);
     let X: Vec3<f64> = Vec3::x();
     let Y: Vec3<f64> = Vec3::y();
-    let Y: Vec3<f64> = Vec3::z();
+    let Z: Vec3<f64> = Vec3::z();
 
     // declare camera
-    let campos = Vec3::new(2.0, 1.5, -4.0);
+    let campos = Vec3::new(3.0, 1.5, -4.0);
     let look_at = Vec3::new(0.0, 0.0, 0.0);
     let diff_btw = campos - look_at;
     let camdir = -diff_btw.normalize();
