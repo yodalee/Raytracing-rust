@@ -5,11 +5,12 @@ extern crate palette;
 
 use time::precise_time_ns;
 use bmp::{Image, Pixel};
-use na::{Vec3, Norm, Cross};
-use palette::{Rgba};
+use na::{Vec3, Norm, Cross, Dot};
+use palette::{Rgba, named};
 
 mod ray;
 mod camera;
+mod source;
 mod light;
 mod sphere;
 mod plane;
@@ -17,6 +18,7 @@ mod object;
 
 use ray::{Ray};
 use camera::{Camera};
+use source::{Source};
 use light::{Light};
 use sphere::{Sphere};
 use plane::{Plane};
@@ -27,11 +29,53 @@ const HEIGHT: u32 = 480;
 const FWIDTH: f64 = WIDTH as f64;
 const FHEIGHT: f64 = HEIGHT as f64;
 const ASPECT: f64 = FWIDTH / FHEIGHT;
+const AMBIENTLIGHT: f64 = 0.2;
+const ACCURACY: f64 = 1e-6;
 
-fn winningObjIdx(intersections: Vec<f64>) -> i32 {
+fn getColorAt(ray: &Ray, scene_obj: &Vec<Box<Object>>, scene_source: &Vec<Box<Source>>, intersect_dis: &Vec<f64>, idx: Option<usize>, acc: f64, amb: f64) -> Rgba {
+    let (obj, distance) = match idx {
+        None => { return Rgba::new(0.0, 0.0, 0.0, 0.0) },
+        Some(idx) => (scene_obj.get(idx).unwrap(), *intersect_dis.get(idx).unwrap())
+    };
+
+    let intersect_pos = ray.getRayOrigin() + ray.getRayDirection()*distance;
+    let intersect_dir = ray.getRayDirection();
+
+    let mut color = obj.getColor() * (AMBIENTLIGHT as f32);
+    let normal = obj.getNormalAt(intersect_pos);
+
+    for light in scene_source.iter() {
+        let light_dir = (light.getLightPosition() - intersect_pos).normalize();
+        let cos_angle = normal.dot(&light_dir);
+        if cos_angle > 0.0 {
+            //test for shadows
+            let mut shadowed = false;
+
+            let light_dis = (light.getLightPosition() - intersect_pos).norm();
+            let shadow_ray = Ray::new(intersect_pos, (light.getLightPosition()-intersect_pos).normalize());
+
+            let mut second_intersect :Vec<f64> = Vec::new();
+            for obj in scene_obj.iter() {
+                second_intersect.push(obj.findIntersection(&shadow_ray));
+            }
+            for d in second_intersect {
+                if d > ACCURACY && d <= light_dis {
+                    // object between light and intersect point
+                    shadowed = true;
+                }
+            }
+            if shadowed == false {
+                color = color + light.getLightColor() * (cos_angle as f32)
+            }
+        }
+    }
+    return color
+}
+
+fn winningObjIdx(intersections: &Vec<f64>) -> Option<usize> {
     // return the index of the winning intersection
     match intersections.len() {
-        0 => -1,
+        0 => None,
         _ => {
             let mut max = 0.0f64;
             let mut idx:usize = 0;
@@ -42,14 +86,14 @@ fn winningObjIdx(intersections: Vec<f64>) -> i32 {
             }
             if max > 0.0 {
                 for (i, intersect) in intersections.iter().enumerate() {
-                    if *intersect > 0.0 && *intersect < max {
+                    if (*intersect > 0.0) && (*intersect <= max) {
                         max = *intersect;
                         idx = i;
                     }
                 }
-                idx as i32
+                Some(idx)
             } else {
-                -1
+                None
             }
         },
     }
@@ -85,7 +129,8 @@ fn main() {
     let black = Rgba::new(0.0, 0.0, 0.0, 0.0);
 
     let light_position = Vec3::new(-7.0, 10.0, -10.0);
-    let scene_light = Light::new(light_position, white_light);
+    let mut scene_source: Vec<Box<Source>> = Vec::new();
+    scene_source.push(Box::new(Light::new(light_position, white_light)));
 
     // declare Scene
     let mut scene_obj: Vec<Box<Object>> = Vec::new();
@@ -113,12 +158,16 @@ fn main() {
 
         let cam_ray_direction = (camdir + (camright*(xamnt - 0.5)) + camdown*(yamnt-0.5)).normalize();
         let cam_ray = Ray::new(cam_ray_origin, cam_ray_direction);
-        let mut intersections: Vec<f64> = Vec::new();
+        let mut intersect_dis: Vec<f64> = Vec::new();
 
         for obj in scene_obj.iter() {
-            intersections.push(obj.findIntersection(&cam_ray));
+            intersect_dis.push(obj.findIntersection(&cam_ray));
         }
-        let idx = winningObjIdx(intersections);
+        let idx = winningObjIdx(&intersect_dis);
+
+        let color = getColorAt(&cam_ray, &scene_obj, &scene_source, &intersect_dis, idx, ACCURACY, AMBIENTLIGHT);
+
+        img.set_pixel(x, y, Pixel{r: (color.red*255.0) as u8, g: (color.green*255.0) as u8, b: (color.blue*255.0) as u8});
     }
 
     let _ = img.save("scene.bmp");
