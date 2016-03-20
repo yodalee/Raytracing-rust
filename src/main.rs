@@ -6,7 +6,7 @@ extern crate palette;
 use time::precise_time_ns;
 use bmp::{Image, Pixel};
 use na::{Vec3, Norm, Cross, Dot};
-use palette::{Rgba, named};
+use palette::{Rgba};
 
 mod ray;
 mod camera;
@@ -167,7 +167,11 @@ fn main() {
 
         let color = getColorAt(&cam_ray, &scene_obj, &scene_source, &intersect_dis, idx, ACCURACY, AMBIENTLIGHT);
 
-        img.set_pixel(x, y, Pixel{r: (color.red*255.0) as u8, g: (color.green*255.0) as u8, b: (color.blue*255.0) as u8});
+        img.set_pixel(x, y, Pixel{
+            r: (color.red.min(1.0)*255.0) as u8,
+            g: (color.green.min(1.0)*255.0) as u8,
+            b: (color.blue.min(1.0)*255.0) as u8
+        });
     }
 
     let _ = img.save("scene.bmp");
