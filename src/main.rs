@@ -11,16 +11,49 @@ use palette::{Rgba};
 mod ray;
 mod camera;
 mod light;
+mod sphere;
+mod plane;
+mod object;
 
 use ray::{Ray};
 use camera::{Camera};
 use light::{Light};
+use sphere::{Sphere};
+use plane::{Plane};
+use object::{Object};
 
 const WIDTH: u32 = 640;
 const HEIGHT: u32 = 480;
 const FWIDTH: f64 = WIDTH as f64;
 const FHEIGHT: f64 = HEIGHT as f64;
 const ASPECT: f64 = FWIDTH / FHEIGHT;
+
+fn winningObjIdx(intersections: Vec<f64>) -> i32 {
+    // return the index of the winning intersection
+    match intersections.len() {
+        0 => -1,
+        _ => {
+            let mut max = 0.0f64;
+            let mut idx:usize = 0;
+            for intersect in intersections.iter() {
+                if *intersect > max {
+                    max = *intersect
+                }
+            }
+            if max > 0.0 {
+                for (i, intersect) in intersections.iter().enumerate() {
+                    if *intersect > 0.0 && *intersect < max {
+                        max = *intersect;
+                        idx = i;
+                    }
+                }
+                idx as i32
+            } else {
+                -1
+            }
+        },
+    }
+}
 
 fn main() {
     println!("rendering ...");
@@ -54,8 +87,14 @@ fn main() {
     let light_position = Vec3::new(-7.0, 10.0, -10.0);
     let scene_light = Light::new(light_position, white_light);
 
+    // declare Scene
+    let mut scene_obj: Vec<Box<Object>> = Vec::new();
+    scene_obj.push(Box::new(Sphere::new(O, 1.0, pretty_green)));
+    scene_obj.push(Box::new(Plane::new(Y, -1.0, maroon)));
+
     let mut xamnt: f64 = 0.0;
     let mut yamnt: f64 = 0.0;
+    let cam_ray_origin = Camera.getCameraPosition();
 
     for (x, y) in img.coordinates() {
         // start with no-AA
@@ -71,6 +110,15 @@ fn main() {
             xamnt = (fx+0.5)/FWIDTH;
             yamnt = ((FHEIGHT - fy) + 0.5)/FHEIGHT;
         }
+
+        let cam_ray_direction = (camdir + (camright*(xamnt - 0.5)) + camdown*(yamnt-0.5)).normalize();
+        let cam_ray = Ray::new(cam_ray_origin, cam_ray_direction);
+        let mut intersections: Vec<f64> = Vec::new();
+
+        for obj in scene_obj.iter() {
+            intersections.push(obj.findIntersection(&cam_ray));
+        }
+        let idx = winningObjIdx(intersections);
     }
 
     let _ = img.save("scene.bmp");
