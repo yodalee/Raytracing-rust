@@ -8,17 +8,17 @@ pub struct Ray {
 }
 
 impl Ray {
-    fn getRayOrigin(&self) -> Vec3<f64> { self.origin }
-    fn getRayDirection(&self) -> Vec3<f64> { self.direction }
+    pub fn getRayOrigin(&self) -> Vec3<f64> { self.origin }
+    pub fn getRayDirection(&self) -> Vec3<f64> { self.direction }
 
-    fn new(o: Vec3<f64>, d: Vec3<f64>) -> Self {
+    pub fn new(o: Vec3<f64>, d: Vec3<f64>) -> Self {
         Ray {
             origin: o,
             direction: d,
         }
     }
 
-    fn default(&self) -> Self {
+    pub fn default(&self) -> Self {
         Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 0.0, 0.0))
     }
 }
