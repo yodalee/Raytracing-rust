@@ -65,7 +65,22 @@ fn getColorAt(ray: &Ray, scene_obj: &Vec<Box<Object>>, scene_source: &Vec<Box<So
                 }
             }
             if shadowed == false {
-                color = color + light.getLightColor() * (cos_angle as f32)
+                color = color + light.getLightColor() * (cos_angle as f32);
+
+                if obj.getColor().alpha > 0.0 && obj.getColor().alpha < 1.0 {
+                    let dot1 = normal.dot(&-intersect_dir);
+                    let vec1 = normal * dot1;
+                    let add1 = vec1 + intersect_dir;
+                    let scalar = add1 * 2.0;
+                    let add2 = -intersect_dir + scalar;
+                    let reflect_dir = add2.normalize();
+
+                    let specular = reflect_dir.dot(&light_dir);
+                    if specular > 0.0 {
+                        color = color + light.getLightColor() * specular.powf(10.0) as f32;
+                    }
+                }
+
             }
         }
     }
@@ -135,7 +150,7 @@ fn main() {
     // declare Scene
     let mut scene_obj: Vec<Box<Object>> = Vec::new();
     scene_obj.push(Box::new(Sphere::new(O, 1.0, pretty_green)));
-    scene_obj.push(Box::new(Plane::new(Y, -1.0, maroon)));
+    scene_obj.push(Box::new(Plane::new(Y, -1.0, gray)));
 
     let mut xamnt: f64 = 0.0;
     let mut yamnt: f64 = 0.0;
